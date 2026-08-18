@@ -1,0 +1,17 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.dockerfile"
+
+[deploy]
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# NOT: MODEL_PATH (varsayılan ./models) kalıcı olmalı, aksi halde her
+# deploy'da eğitilmiş modeller silinir. Railway'de bir Volume oluşturup
+# /app/models'e mount edin (Settings -> Volumes), MODEL_PATH=/app/models
+# olarak ayarlayın. Aynı şekilde DATABASE_URL için Railway'in Postgres
+# add-on'ını kullanın (Redis şu an sadece eski docker-compose için, kod
+# tarafında aktif kullanılmıyorsa Railway'de eklemenize gerek yok).

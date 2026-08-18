@@ -1,0 +1,15 @@
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+# VITE_API_BASE_URL, Netlify UI'da (Site configuration -> Environment
+# variables) FastAPI backend'in (Railway/Render/Fly) genel URL'i olarak
+# ayarlanmalı, örn: https://predictaiq-production.up.railway.app
+# Not: build-time bir değişken olduğu için değiştirildiğinde yeniden
+# deploy tetiklenmesi gerekir.
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
