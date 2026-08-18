@@ -1,9 +1,0 @@
-[build]
-  base = "."
-  command = "npm run build"
-  publish = "dist"
-
-[build.environment]
-  VITE_SUPABASE_URL = "https://febyvrslqgqswyizkjxm.supabase.co"
-  VITE_SUPABASE_ANON_KEY = "sb_publishable_Ddk5C49wrRaBozeFSV6ymA_vibjHpfI"
-  VITE_API_URL = "https://predictaiq.up.railway.app"
