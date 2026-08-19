@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -12,10 +12,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U predictaiq"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U predictaiq -d predictaiq"]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   redis:
     image: redis:7-alpine
@@ -23,16 +23,16 @@ services:
       - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   app:
     build: .
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://predictaiq:password@postgres:5432/predictaiq
+      DATABASE_URL: postgresql+psycopg2://predictaiq:password@postgres:5432/predictaiq
       REDIS_URL: redis://redis:6379/0
     depends_on:
       postgres:
