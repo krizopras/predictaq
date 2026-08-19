@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from app.config import settings
 from app.database import Base, engine, SessionLocal
@@ -49,8 +50,12 @@ async def lifespan(app: FastAPI):
     """Application lifecycle manager"""
     logger.info("Starting up PredictaIQ...")
 
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created")
+    # Veritabanı tablolarını güvenli bağlama
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully.")
+    except Exception as exc:
+        logger.error("Database initialization failed during startup: %s", exc)
 
     if not settings.admin_api_key and not settings.debug:
         logger.warning(
@@ -60,7 +65,7 @@ async def lifespan(app: FastAPI):
         )
 
     _load_models_from_disk()
-    logger.info("Models loaded")
+    logger.info("Models load sequence completed.")
 
     yield
 
@@ -74,10 +79,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS -- eski kodda allow_origins=["*"] + allow_credentials=True birlikte
-# kullaniliyordu, ki bu tarayicilarda gecersiz/guvensiz bir kombinasyondur
-# (CORS spesifikasyonu credentials ile wildcard origin'e izin vermez).
-# Origin listesi artik .env uzerinden (CORS_ALLOW_ORIGINS) yapilandiriliyor.
+# CORS -- allow_origins ayarı settings uzerinden yapilandiriliyor.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_allow_origins,
@@ -112,7 +114,18 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    db_status = "ok"
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+
+    return {
+        "status": "healthy",
+        "database": db_status
+    }
 
 
 if __name__ == "__main__":
