@@ -7,13 +7,13 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY PredictaIQ/requirements.txt .
+# PredictaIQ/requirements.txt yerine doğrudan requirements.txt kopyalayın:
+COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY PredictaIQ/ .
-
-RUN mkdir -p /app/models /app/data
+# PredictaIQ/ . yerine doğrudan tüm dosyaları (. .) kopyalayın:
+COPY . .
 
 EXPOSE 8000
 
