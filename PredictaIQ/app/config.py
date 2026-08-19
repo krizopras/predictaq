@@ -70,10 +70,13 @@ class Settings(BaseSettings):
     def cors_allow_origins(self) -> List[str]:
         return [o.strip() for o in self.cors_allow_origins_raw.split(",") if o.strip()]
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
-        populate_by_name = True
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": False,
+        "populate_by_name": True,
+        "protected_namespaces": (),
+        "extra": "ignore",
+    }
 
 
 settings = Settings()
