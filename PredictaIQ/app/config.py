@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     elo_time_decay_half_life_days: int = 180  # "6 ay önceki maç daha az önemli"
 
     # Security
-    secret_key: str
+    secret_key: str = "8f9a2b4c6e1d3f5a7b9c0d2e4f6a8b1c3d5e7f9a2b4c6e1d3f5a7b9c0d2e4f6a"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     # /api/v1/admin/* endpoint'lerini korumak için paylaşımlı anahtar
