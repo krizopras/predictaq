@@ -57,17 +57,26 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down PredictaIQ...")
 
 
+# redirect_slashes=True ile /matches ve /matches/ aramalarının ikisi de 200 OK döner.
 app = FastAPI(
     title="PredictaIQ",
     version="2.0.0",
     description="Advanced Football Prediction Engine",
     lifespan=lifespan,
+    redirect_slashes=True,
 )
 
-# CORS -- allow_origins ayarı settings uzerinden yapilandiriliyor.
+# CORS -- Her ihtimale karşı listeyi ve varsayılan wildcard (*) garantisini sağlıyoruz.
+origins = settings.cors_allow_origins
+if isinstance(origins, str):
+    origins = [origin.strip() for origin in origins.split(",")]
+
+if not origins or origins == [""]:
+    origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_allow_origins,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
