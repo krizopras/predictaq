@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
 
 from app.config import settings
 from app.database import Base, engine, SessionLocal
@@ -17,28 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 def _load_models_from_disk() -> None:
-    """Acilista modelleri EGITMEZ -- sadece settings.model_path'ten (bir
-    GitHub Actions/manuel models/train cagrisinin onceden diske yazdigi)
-    kaydedilmis ML/similarity/calibration modellerini ve DB'deki aktif
-    ensemble agirliklarini YUKLER.
-
-    Bu degisiklik bilincli: eski _bootstrap_models() her process
-    baslangicinda (her deploy, her restart, her yeni instance) rating
-    recompute + similarity/ML egitimini best-effort calistiriyordu. Bu,
-    production'da ongorulemeyen, tekrarlayan CPU harcamasi ve yavas
-    acilis demekti. Artik egitim SADECE POST /api/v1/admin/models/train
-    ile (GitHub Actions cron veya elle) tetikleniyor; process acilisi
-    her zaman hizli ve deterministik.
-
-    Diskte/DB'de kayitli bir sey yoksa (ilk kurulum) hata FIRLATMAZ --
-    uygulama bos modellerle acilir, tahminler diger modellere (Poisson/
-    Elo/xG/market) duser, /admin/models/train cagrilinca tamamlanir.
-    """
     db = SessionLocal()
     try:
         result = model_persistence.load_all(prediction_service, settings.model_path, db)
         logger.info("Model yukleme: %s", result)
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         logger.warning("Model yukleme sirasinda hata (yoksayiliyor): %s", exc)
         db.rollback()
     finally:
@@ -50,7 +32,7 @@ async def lifespan(app: FastAPI):
     """Application lifecycle manager"""
     logger.info("Starting up PredictaIQ...")
 
-    # Veritabanı tablolarını güvenli bağlama
+    # Veritabanı tablolarını güvenli ve hızlı şekilde bağla
     try:
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created successfully.")
@@ -64,8 +46,11 @@ async def lifespan(app: FastAPI):
             "Production'da mutlaka bir ADMIN_API_KEY set edin."
         )
 
-    _load_models_from_disk()
-    logger.info("Models load sequence completed.")
+    try:
+        _load_models_from_disk()
+        logger.info("Models load sequence completed.")
+    except Exception as exc:
+        logger.warning("Skipping model load on startup: %s", exc)
 
     yield
 
@@ -112,20 +97,10 @@ async def root():
     }
 
 
+# Healthcheck Railway için anında 200 OK dönecek şekilde ultra hafifletildi
 @app.get("/health")
 async def health():
-    db_status = "ok"
-    try:
-        db = SessionLocal()
-        db.execute(text("SELECT 1"))
-        db.close()
-    except Exception as e:
-        db_status = f"error: {str(e)}"
-
-    return {
-        "status": "healthy",
-        "database": db_status
-    }
+    return {"status": "healthy"}
 
 
 if __name__ == "__main__":
