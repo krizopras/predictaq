@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # ---------------------------------------------------------------------------
@@ -53,6 +53,9 @@ class PredictionRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 class MatchResponse(BaseModel):
+    # Pydantic'in "model_" önekine verdiği uyarıyı kapatıyoruz
+    model_config = ConfigDict(protected_namespaces=())
+
     id: str
     sportsdata_id: Optional[str]
     home_team: str
