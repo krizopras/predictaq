@@ -1,0 +1,16 @@
+name: Train Models
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Her gün saat 03:00 UTC
+  workflow_dispatch:     # Manuel çalıştırma butonu
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Model Training
+        run: |
+          curl -X POST "${{ secrets.API_BASE_URL }}/admin/models/train" \
+            -H "X-API-Key: ${{ secrets.ADMIN_API_KEY }}" \
+            -H "Content-Type: application/json"
