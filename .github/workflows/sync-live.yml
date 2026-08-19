@@ -1,0 +1,16 @@
+name: Sync Live Matches & Odds
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # Her 15 dakikada bir çalışır
+  workflow_dispatch:        # Manuel çalıştırma butonu
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Live Sync
+        run: |
+          curl -X POST "${{ secrets.API_BASE_URL }}/admin/sync/live" \
+            -H "X-API-Key: ${{ secrets.ADMIN_API_KEY }}" \
+            -H "Content-Type: application/json"
