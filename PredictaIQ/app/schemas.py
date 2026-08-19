@@ -26,6 +26,9 @@ class PredictionDetail(BaseModel):
 
 
 class PredictionResponse(BaseModel):
+    # Pydantic'in "model_" önekine verdiği uyarıyı kapatıyoruz (model_details için)
+    model_config = ConfigDict(protected_namespaces=())
+
     fixture_id: str
     home_team: str
     away_team: str
